@@ -10,6 +10,7 @@ interface AiPanelProps {
   modelStatus: string
   isDownloading: boolean
   downloadProgress: number
+  usingNative: boolean
   // Tab content
   summaryText: string
   summaryStreaming: boolean
@@ -36,6 +37,7 @@ export default function AiPanel({
   modelStatus,
   isDownloading,
   downloadProgress,
+  usingNative,
   summaryText, summaryStreaming,
   faqText, faqStreaming,
   actionsText, actionsStreaming,
@@ -178,7 +180,9 @@ export default function AiPanel({
           {activeTab !== 'chat' && (
             <div className="panel-privacy-footer">
               <span aria-hidden="true">🔒</span>
-              Generado localmente · 0 llamadas de red · Sin almacenamiento de datos
+              {usingNative
+                ? 'Gemini Nano · on-device · 0 llamadas de red'
+                : 'Simulador local · 0 llamadas de red'}
             </div>
           )}
         </>

@@ -55,9 +55,10 @@ export default function App() {
   const currentSection = REPORT_SECTIONS.find((s) => s.id === activeSection)!
   const activeEntry    = currentSection.entries.find((e) => e.id === activeEntryId) ?? null
   const useSimulator   = simulatorMode || !isAvailable
+  const usingNative    = !useSimulator
   const modelStatus    =
     isAvailable === null ? 'Detectando…'
-    : isAvailable        ? 'Gemini Nano · Local'
+    : usingNative        ? 'Gemini Nano · Local'
     :                      'Modo Simulador'
 
   // Close panel on Escape
@@ -335,6 +336,7 @@ export default function App() {
           modelStatus={modelStatus}
           isDownloading={isDownloading}
           downloadProgress={downloadProgress}
+          usingNative={usingNative}
           summaryText={summaryText}
           summaryStreaming={summaryStreaming}
           faqText={faqText}
