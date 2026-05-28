@@ -20,12 +20,20 @@ export async function streamNativeSummarizer(text: string, onChunk: (chunk: stri
     throw new Error('User activation required to create Summarizer')
   }
 
+  const ctrl = new AbortController()
+  if (opts.signal) {
+    // forward external abort to our internal controller
+    opts.signal.addEventListener('abort', () => ctrl.abort(), { once: true })
+  }
+
   const options = {
     type: 'key-points',
     length: 'short',
     format: 'markdown',
-    sharedContext: 'Asistente UX in-app.',
-    monitor: opts.monitor
+    sharedContext: 'Panel de ayuda médico contextual. Explica en lenguaje cotidiano.',
+    expectedInputLanguages: ['es', 'en'],
+    signal: ctrl.signal,
+    monitor: opts.monitor,
   }
 
   const summarizer = await Summarizer.create(options)
@@ -34,19 +42,22 @@ export async function streamNativeSummarizer(text: string, onChunk: (chunk: stri
   const cleanup = async () => {
     if (closed) return
     closed = true
+    // Architecture step 6: abort + destroy per slides deck
+    ctrl.abort()
     try {
       await summarizer.destroy?.()
     } catch (err) {
-      // best-effort cleanup; log but do not throw
-      // eslint-disable-next-line no-console
       console.warn('summarizer.destroy failed', err)
     }
   }
 
   try {
-    // prefer summarizeStreaming if available
-    const stream = summarizer.summarizeStreaming ? summarizer.summarizeStreaming(text) : (await summarizer.stream?.(text))
-    if (!stream) throw new Error('Summarizer does not provide a streaming interface')
+    // Per MDN + slides deck: use summarizeStreaming() (not stream())
+    if (typeof summarizer.summarizeStreaming !== 'function') {
+      throw new Error('Summarizer does not support summarizeStreaming')
+    }
+    const stream = summarizer.summarizeStreaming(text)
+    if (!stream) throw new Error('summarizeStreaming returned no stream')
 
     for await (const c of stream) {
       if (opts.signal?.aborted) break
