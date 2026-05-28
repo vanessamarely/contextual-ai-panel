@@ -30,14 +30,20 @@ export interface ReportSection {
   entries: Entry[]
 }
 
-/** The three tabs in the AI analysis panel */
-export type PanelTab = 'summary' | 'faq' | 'actions'
+/** The four tabs in the AI analysis panel */
+export type PanelTab = 'summary' | 'faq' | 'actions' | 'chat'
 
 /** Tab display configuration */
 export interface TabConfig {
   id: PanelTab
   icon: string
   label: string
+}
+
+/** A single message in the follow-up chat conversation */
+export interface ChatMsg {
+  role: 'user' | 'assistant'
+  text: string
 }
 
 /** Text chunk emitted by a streaming AI response */

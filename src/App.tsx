@@ -1,186 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createPortal, flushSync } from 'react-dom'
 import { useBuiltInAi } from './hooks/useBuiltInAi'
-import { sanitize } from './utils/sanitize'
-
-// ─── Report data ──────────────────────────────────────────────────────────────
-const REPORT_SECTIONS = [
-  {
-    id: 'labs',
-    label: 'Resultados de Laboratorio',
-    entries: [
-      {
-        id: 'tsh',
-        term: 'TSH',
-        value: '4.5 mIU/L',
-        ref: '0.5 – 4.0 mIU/L',
-        flag: 'high',
-        raw: 'TSH 4.5 mIU/L (ref 0.5–4.0 mIU/L). Indica función tiroidea potencialmente disminuida. Requiere correlación clínica y posible seguimiento con T4 libre.',
-      },
-      {
-        id: 'hba1c',
-        term: 'HbA1c',
-        value: '6.8 %',
-        ref: '< 5.7 %',
-        flag: 'high',
-        raw: 'HbA1c 6.8% (ref <5.7%). Valores entre 5.7–6.4% indican prediabetes; ≥6.5% es criterio diagnóstico de diabetes tipo 2. Se recomienda evaluación por endocrinología.',
-      },
-      {
-        id: 'ldl',
-        term: 'LDL Colesterol',
-        value: '142 mg/dL',
-        ref: '< 100 mg/dL',
-        flag: 'high',
-        raw: 'LDL 142 mg/dL (ref <100 mg/dL). Colesterol LDL elevado. Aumenta riesgo cardiovascular. Considerar cambios de estilo de vida y posible terapia farmacológica.',
-      },
-      {
-        id: 'creatinine',
-        term: 'Creatinina',
-        value: '0.9 mg/dL',
-        ref: '0.6 – 1.2 mg/dL',
-        flag: 'normal',
-        raw: 'Creatinina 0.9 mg/dL (ref 0.6–1.2 mg/dL). Dentro del rango normal. Indica función renal adecuada para la filtración de desechos metabólicos.',
-      },
-    ],
-  },
-  {
-    id: 'meds',
-    label: 'Prescripciones',
-    entries: [
-      {
-        id: 'metformin',
-        term: 'Metformina 850 mg',
-        value: '2×/día',
-        ref: 'Con alimentos',
-        flag: 'info',
-        raw: 'Metformina 850mg c/12h con alimentos. Biguanida de primera línea para diabetes tipo 2. Reduce gluconeogénesis hepática. Contraindicada en insuficiencia renal severa (TFG<30).',
-      },
-      {
-        id: 'levothyroxine',
-        term: 'Levotiroxina 50 mcg',
-        value: '1×/día',
-        ref: 'Ayunas, 30 min antes de comer',
-        flag: 'info',
-        raw: 'Levotiroxina 50mcg cada mañana en ayunas. Hormona tiroidea sintética para hipotiroidismo. Evitar con calcio, hierro o antiácidos dentro de 4h. Verificar TSH en 6–8 semanas.',
-      },
-    ],
-  },
-  {
-    id: 'imaging',
-    label: 'Imagen Diagnóstica',
-    entries: [
-      {
-        id: 'echo',
-        term: 'Ecocardiograma',
-        value: 'FE 58%',
-        ref: 'Normal ≥ 55%',
-        flag: 'normal',
-        raw: 'Fracción de Eyección (FE) 58%. Función sistólica del ventrículo izquierdo conservada. No se evidencian alteraciones valvulares significativas. Seguimiento rutinario anual recomendado.',
-      },
-      {
-        id: 'thyroid-us',
-        term: 'Ecografía Tiroidea',
-        value: 'Nódulo 6 mm',
-        ref: 'TIRADS 2',
-        flag: 'warning',
-        raw: 'Nódulo tiroideo derecho de 6mm, TIRADS 2 (benigno). Características benignas. Sin vascularización anormal. Seguimiento ecográfico en 12 meses según guías ACR.',
-      },
-    ],
-  },
-]
-
-const FLAG_CONFIG = {
-  high:    { label: '↑ Alto',     cls: 'flag-high'    },
-  low:     { label: '↓ Bajo',     cls: 'flag-low'     },
-  normal:  { label: '✓ Normal',   cls: 'flag-normal'  },
-  warning: { label: '⚠ Atención', cls: 'flag-warning' },
-  info:    { label: 'ℹ Info',     cls: 'flag-info'    },
-}
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-type PanelTab  = 'summary' | 'faq' | 'actions' | 'chat'
-type Entry     = (typeof REPORT_SECTIONS)[0]['entries'][0]
-type ChatMsg   = { role: 'user' | 'assistant'; text: string }
-
-const TAB_CONFIG: { id: PanelTab; icon: string; label: string }[] = [
-  { id: 'summary', icon: '✦', label: 'Resumen'        },
-  { id: 'faq',     icon: '❓', label: 'Preguntas'      },
-  { id: 'actions', icon: '✓', label: 'Plan de Acción'  },
-  { id: 'chat',    icon: '💬', label: 'Preguntar'       },
-]
-
-// ─── LabEntry ─────────────────────────────────────────────────────────────────
-// Row is a <div> so we can nest two semantic buttons:
-//  1. lab-row__main  → opens the AI panel (Explicar)
-//  2. lab-info-btn   → opens the CSS-anchor-positioned popover (raw data, no AI)
-function LabEntry({
-  entry,
-  active,
-  onActivate,
-  onInfo,
-}: {
-  entry: Entry
-  active: boolean
-  onActivate: (id: string, text: string) => void
-  onInfo: (entry: Entry, buttonEl: HTMLButtonElement) => void
-}) {
-  const flag = FLAG_CONFIG[entry.flag as keyof typeof FLAG_CONFIG]
-
-  return (
-    <div className={`lab-row ${active ? 'lab-row--active' : ''}`} role="listitem">
-      {/* Main clickable area – opens AI panel */}
-      <button
-        className="lab-row__main"
-        onClick={() => onActivate(entry.id, entry.raw)}
-        aria-pressed={active}
-        aria-label={`Explicar ${entry.term} con IA`}
-      >
-        <span className="lab-term">{entry.term}</span>
-        <span className={`lab-flag ${flag.cls}`}>{flag.label}</span>
-        <span className="lab-value">
-          {entry.value}
-          <span className="lab-ref">(ref: {entry.ref})</span>
-        </span>
-        <span className="lab-cta" aria-hidden="true">Explicar →</span>
-      </button>
-
-      {/* ℹ button – passes itself so openInfoPopover can position the popover via getBoundingClientRect */}
-      <button
-        className="lab-info-btn"
-        onClick={(e) => onInfo(entry, e.currentTarget)}
-        aria-label={`Datos clínicos de ${entry.term} sin IA`}
-        aria-haspopup="dialog"
-      >
-        ℹ
-      </button>
-    </div>
-  )
-}
-
-// ─── StreamBlock ──────────────────────────────────────────────────────────────
-// Renders skeleton shimmer while streaming, then the final content.
-function StreamBlock({ text, streaming }: { text: string; streaming: boolean }) {
-  return (
-    <div className="stream-block">
-      {streaming && !text && (
-        <div className="stream-skeleton" role="status" aria-label="Generando…">
-          <div className="skel-bar" style={{ width: '85%' }} />
-          <div className="skel-bar" style={{ width: '60%' }} />
-          <div className="skel-bar" style={{ width: '92%' }} />
-          <div className="skel-bar" style={{ width: '70%' }} />
-        </div>
-      )}
-      {text && (
-        <div
-          className="med-ai-panel__output"
-          // sanitize() strips <script> and on* attributes before innerHTML injection
-          dangerouslySetInnerHTML={{ __html: sanitize(text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>')) }}
-        />
-      )}
-      {streaming && text && <span className="stream-cursor" aria-hidden="true" />}
-    </div>
-  )
-}
+import { REPORT_SECTIONS } from './data/reportData'
+import type { PanelTab, Entry, ChatMsg } from './types'
+import LabEntry from './components/LabEntry'
+import AiPanel from './components/AiPanel'
+import InfoPopover from './components/InfoPopover'
+import PresenterSandbox from './components/PresenterSandbox'
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function App() {
@@ -473,7 +299,6 @@ export default function App() {
           </div>
 
           <div className="lab-table" role="list" aria-label="Resultados de laboratorio">
-            {/* Header row mirrors the row flex layout */}
             <div className="lab-table__head" aria-hidden="true">
               <div className="lab-table__head-main">
                 <span>Parámetro</span>
@@ -502,191 +327,33 @@ export default function App() {
           </div>
         </main>
 
-        {/* ── AI Panel: absolute overlay, slides in from the right ─────── */}
-        <aside
-          className={`med-ai-panel ${panelOpen ? 'med-ai-panel--open' : ''}`}
-          aria-label="Panel de ayuda contextual con IA"
-          aria-live="polite"
-          role="complementary"
-        >
-          {/* Empty state – visible only when panel is off-screen (transform: translateX(100%)) */}
-          {!panelOpen && (
-            <div className="med-ai-panel__empty">
-              <div className="med-ai-panel__empty-icon" aria-hidden="true">✦</div>
-              <p>
-                Selecciona cualquier resultado del informe para recibir Resumen, Preguntas frecuentes
-                y Plan de Acción generados localmente con IA.
-              </p>
-              <div className="med-ai-panel__privacy">🔒 Datos procesados on-device · HIPAA-Friendly</div>
-            </div>
-          )}
-
-          {/* Active panel content */}
-          {panelOpen && (
-            <>
-              {/* ── Header ────────────────────────────────────────────── */}
-              <div className="med-ai-panel__header">
-                <div>
-                  <div className="med-ai-panel__title">
-                    {activeEntry?.term ?? 'Explicación'}
-                    {activeEntry?.flag && (
-                      <span
-                        className={`flag-badge ${
-                          FLAG_CONFIG[activeEntry.flag as keyof typeof FLAG_CONFIG]?.cls
-                        }`}
-                      >
-                        {FLAG_CONFIG[activeEntry.flag as keyof typeof FLAG_CONFIG]?.label}
-                      </span>
-                    )}
-                  </div>
-                  <div className="med-ai-panel__subtitle">{modelStatus}</div>
-                </div>
-                <button
-                  className="med-ai-panel__close"
-                  onClick={closePanel}
-                  aria-label="Cerrar panel"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* ── Model download progress ────────────────────────────── */}
-              {isDownloading && (
-                <div className="med-ai-panel__progress">
-                  <div className="progress-label">
-                    Cargando Gemini Nano… {downloadProgress}%
-                  </div>
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: `${downloadProgress}%` }} />
-                  </div>
-                </div>
-              )}
-
-              {/* ── Tabs: switch with startViewTransition ──────────────── */}
-              <div className="panel-tabs" role="tablist" aria-label="Vistas de análisis">
-                {TAB_CONFIG.map(({ id, icon, label }) => (
-                  <button
-                    key={id}
-                    className={`panel-tab ${activeTab === id ? 'panel-tab--active' : ''}`}
-                    role="tab"
-                    aria-selected={activeTab === id}
-                    onClick={() => switchTab(id)}
-                  >
-                    <span aria-hidden="true">{icon}</span>
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              {/* ── Tab body: view-transition-name enables targeted cross-fade ── */}
-              {/* Summarizer API → 'summary' tab                                   */}
-              {/* LanguageModel (Prompt API) → 'faq', 'actions', and 'chat' tabs  */}
-              <div
-                className="med-ai-panel__body"
-                style={{ viewTransitionName: 'panel-content' } as React.CSSProperties}
-                role="tabpanel"
-              >
-                {activeTab === 'summary' && (
-                  <StreamBlock text={summaryText} streaming={summaryStreaming} />
-                )}
-                {activeTab === 'faq' && (
-                  <StreamBlock text={faqText} streaming={faqStreaming} />
-                )}
-                {activeTab === 'actions' && (
-                  <StreamBlock text={actionsText} streaming={actionsStreaming} />
-                )}
-                {activeTab === 'chat' && (
-                  <div className="panel-chat">
-                    <div className="panel-chat__messages">
-                      {chatMessages.length === 0 && (
-                        <p className="panel-chat__empty">
-                          Haz cualquier pregunta sobre <strong>{activeEntry?.term}</strong>…
-                        </p>
-                      )}
-                      {chatMessages.map((m, i) => (
-                        <div
-                          key={i}
-                          className={`panel-chat__msg panel-chat__msg--${m.role}`}
-                        >
-                          {m.text}
-                          {chatStreaming && i === chatMessages.length - 1 && m.role === 'assistant' && (
-                            <span className="stream-cursor" aria-hidden="true" />
-                          )}
-                        </div>
-                      ))}
-                      <div ref={chatBottomRef} />
-                    </div>
-                    <form
-                      className="panel-chat__form"
-                      onSubmit={(e) => { e.preventDefault(); void sendChatMessage() }}
-                    >
-                      <input
-                        className="panel-chat__input"
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        placeholder={`Pregunta sobre ${activeEntry?.term ?? 'este resultado'}…`}
-                        disabled={chatStreaming}
-                        autoFocus
-                      />
-                      <button
-                        type="submit"
-                        className="panel-chat__send"
-                        disabled={chatStreaming || !chatInput.trim()}
-                        aria-label="Enviar pregunta"
-                      >
-                        {chatStreaming ? '⏳' : '→'}
-                      </button>
-                    </form>
-                  </div>
-                )}
-              </div>
-
-              {/* ── Privacy footer (hidden for chat tab — form is already at bottom) ── */}
-              {activeTab !== 'chat' && (
-                <div className="panel-privacy-footer">
-                  <span aria-hidden="true">🔒</span>
-                  Generado localmente · 0 llamadas de red · Sin almacenamiento de datos
-                </div>
-              )}
-            </>
-          )}
-        </aside>
+        {/* ── AI Panel ─────────────────────────────────────────────────── */}
+        <AiPanel
+          open={panelOpen}
+          activeEntry={activeEntry}
+          activeTab={activeTab}
+          modelStatus={modelStatus}
+          isDownloading={isDownloading}
+          downloadProgress={downloadProgress}
+          summaryText={summaryText}
+          summaryStreaming={summaryStreaming}
+          faqText={faqText}
+          faqStreaming={faqStreaming}
+          actionsText={actionsText}
+          actionsStreaming={actionsStreaming}
+          chatMessages={chatMessages}
+          chatInput={chatInput}
+          chatStreaming={chatStreaming}
+          chatBottomRef={chatBottomRef}
+          onClose={closePanel}
+          onSwitchTab={switchTab}
+          onChatInputChange={setChatInput}
+          onSendChatMessage={sendChatMessage}
+        />
       </div>
 
-      {/* ── Info Popover ──────────────────────────────────────────────────── */}
-      {/* Native popover="auto" → renders in the top layer (no z-index needed) */}
-      {/* CSS Anchor Positioning → position-anchor set via JS to --info-{id}   */}
-      {/* @position-try fallbacks ensure it stays visible near viewport edges  */}
-      {/* popover attribute set imperatively in useEffect (React 18.2 does not forward it) */}
-      <div
-        ref={infoPopoverRef}
-        id="lab-info-popover"
-        className="lab-info-popover"
-        aria-label="Datos clínicos del resultado"
-      >
-        {popoverEntry && (
-          <div className="lab-info-popover__inner">
-            <div className="lab-info-popover__header">
-              <span className="lab-info-popover__term">{popoverEntry.term}</span>
-              <span
-                className={`lab-flag ${
-                  FLAG_CONFIG[popoverEntry.flag as keyof typeof FLAG_CONFIG]?.cls
-                }`}
-              >
-                {FLAG_CONFIG[popoverEntry.flag as keyof typeof FLAG_CONFIG]?.label}
-              </span>
-            </div>
-            <div className="lab-info-popover__value">
-              <strong>{popoverEntry.value}</strong>
-              <span className="lab-info-popover__ref">Referencia: {popoverEntry.ref}</span>
-            </div>
-            <p className="lab-info-popover__raw">{popoverEntry.raw}</p>
-            <div className="lab-info-popover__note">
-              ℹ Datos clínicos brutos · No es una interpretación de IA
-            </div>
-          </div>
-        )}
-      </div>
+      {/* ── Info Popover (native top-layer, positioned via JS) ────────────── */}
+      <InfoPopover ref={infoPopoverRef} entry={popoverEntry} />
 
       {/* ── Presenter Sandbox ─────────────────────────────────────────────── */}
       {createPortal(
@@ -701,53 +368,6 @@ export default function App() {
           isAvailable={isAvailable}
         />,
         document.body
-      )}
-    </div>
-  )
-}
-
-// ─── PresenterSandbox ────────────────────────────────────────────────────────
-function PresenterSandbox({
-  simulatorMode, setSimulatorMode,
-  forceError,    setForceError,
-  downloadProgress, isDownloading,
-  onSimulateDownload, isAvailable,
-}: {
-  simulatorMode: boolean;   setSimulatorMode: (v: boolean) => void
-  forceError: boolean;      setForceError: (v: boolean) => void
-  downloadProgress: number; isDownloading: boolean
-  onSimulateDownload: () => void
-  isAvailable: boolean | null
-}) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className={`presenter-sandbox ${open ? 'presenter-sandbox--open' : ''}`}>
-      <button className="presenter-sandbox__toggle" onClick={() => setOpen((v) => !v)}>
-        {open ? '▼ Ocultar sandbox' : '▲ Controles demo'}
-      </button>
-      {open && (
-        <div className="presenter-sandbox__body">
-          <label className="sandbox-ctrl">
-            <input type="checkbox" checked={simulatorMode} onChange={() => setSimulatorMode(!simulatorMode)} />
-            Modo Simulador (sin Gemini Nano)
-          </label>
-          <label className="sandbox-ctrl">
-            <input type="checkbox" checked={forceError} onChange={() => setForceError(!forceError)} />
-            Forzar error de API
-          </label>
-          <button className="sandbox-btn" onClick={onSimulateDownload}>
-            Simular descarga del modelo ({downloadProgress}%)
-          </button>
-          <span className="sandbox-status">
-            {isDownloading
-              ? '⏳ Descargando…'
-              : isAvailable === null
-              ? '🔍 Detectando…'
-              : isAvailable
-              ? '✅ Gemini Nano disponible'
-              : '🟡 Fallback simulador'}
-          </span>
-        </div>
       )}
     </div>
   )

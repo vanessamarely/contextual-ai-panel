@@ -101,4 +101,5 @@ export const TAB_CONFIG: TabConfig[] = [
   { id: 'summary' as PanelTab, icon: '✦', label: 'Resumen'        },
   { id: 'faq'     as PanelTab, icon: '❓', label: 'Preguntas'      },
   { id: 'actions' as PanelTab, icon: '✓', label: 'Plan de Acción'  },
+  { id: 'chat'    as PanelTab, icon: '💬', label: 'Preguntar'       },
 ]
