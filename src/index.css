@@ -1253,4 +1253,185 @@ body::after {
 ::-webkit-scrollbar-thumb { background: rgba(0,242,255,0.15); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(0,242,255,0.3); }
 
+/* ── Hamburger menu toggle (hidden on desktop) ──────────────────────────────── */
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 38px;
+  height: 38px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  cursor: pointer;
+  gap: 5px;
+  padding: 0;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.menu-toggle:hover {
+  border-color: var(--cyan-dim);
+  background: rgba(0,242,255,0.06);
+}
+
+/* Three-bar icon via box-shadow */
+.menu-toggle__bar {
+  display: block;
+  position: relative;
+  width: 18px;
+  height: 2px;
+  background: var(--ink-dim);
+  border-radius: 2px;
+  transition: transform 0.25s, opacity 0.25s, background 0.15s;
+}
+
+.menu-toggle__bar::before,
+.menu-toggle__bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 18px;
+  height: 2px;
+  background: var(--ink-dim);
+  border-radius: 2px;
+  transition: transform 0.25s, opacity 0.25s;
+}
+
+.menu-toggle__bar::before { top: -6px; }
+.menu-toggle__bar::after  { top:  6px; }
+
+/* X animation when open */
+.menu-toggle__bar--open {
+  background: transparent;
+}
+.menu-toggle__bar--open::before {
+  transform: translateY(6px) rotate(45deg);
+  background: var(--cyan);
+}
+.menu-toggle__bar--open::after {
+  transform: translateY(-6px) rotate(-45deg);
+  background: var(--cyan);
+}
+
+/* ── Mobile sidebar overlay ─────────────────────────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Show hamburger */
+  .menu-toggle {
+    display: flex;
+  }
+
+  /* Topbar: tighter padding, hide verbose badges */
+  .med-topbar {
+    padding: 0 14px;
+  }
+
+  .privacy-badge {
+    display: none;
+  }
+
+  .ai-status-pill {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  .theme-toggle {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  /* Layout: single column — sidebar becomes a fixed drawer */
+  .med-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* Mobile overlay */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 19;
+    backdrop-filter: blur(2px);
+  }
+
+  /* Sidebar: fixed drawer, hidden off-screen by default */
+  .med-sidebar {
+    position: fixed;
+    left: 0;
+    top: 64px;
+    bottom: 38px; /* above presenter sandbox bar */
+    width: 260px;
+    z-index: 20;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+    border-right: 1px solid var(--rule-strong);
+  }
+
+  .med-sidebar--open {
+    transform: translateX(0);
+    box-shadow: 4px 0 32px rgba(0,0,0,0.5), 2px 0 24px var(--cyan-glow);
+  }
+
+  /* Main: full width */
+  .med-main {
+    padding: 20px 16px;
+    grid-column: 1;
+  }
+
+  /* AI Panel: full width on mobile */
+  .med-ai-panel {
+    width: 100%;
+    left: 0;
+    right: 0;
+    border-left: none;
+    border-top: 1px solid var(--rule);
+  }
+
+  /* Lab table: stack columns on very small screens */
+  .lab-table__head-main,
+  .lab-row__main {
+    grid-template-columns: 1fr 0.7fr;
+  }
+
+  /* Hide value/ref column and CTA on small screens */
+  .lab-value,
+  .lab-cta {
+    display: none;
+  }
+
+  /* Larger touch targets for nav items */
+  .med-nav-item {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+
+  /* Lab table head: hide columns that are hidden in rows */
+  .lab-table__head-main span:nth-child(3),
+  .lab-table__head-main span:nth-child(4) {
+    display: none;
+  }
+
+  /* Report title */
+  .med-report-title {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .med-topbar__sub {
+    display: none;
+  }
+
+  .ai-status-pill {
+    display: none;
+  }
+}
+
 /* end of SaludVista styles */

@@ -43,6 +43,9 @@ export default function App() {
     infoPopoverRef.current?.setAttribute('popover', 'auto')
   }, [])
 
+  // Mobile sidebar toggle
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   // Light/dark theme toggle
   const [lightMode, setLightMode] = useState(false)
 
@@ -246,6 +249,14 @@ export default function App() {
       {/* ── Top bar ──────────────────────────────────────────────────────── */}
       <header className="med-topbar" role="banner">
         <div className="med-topbar__brand">
+          <button
+            className="menu-toggle"
+            onClick={() => setSidebarOpen((v) => !v)}
+            aria-label={sidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={sidebarOpen}
+          >
+            <span className={`menu-toggle__bar ${sidebarOpen ? 'menu-toggle__bar--open' : ''}`} />
+          </button>
           <span className="med-topbar__logo" aria-hidden="true">✦</span>
           <span>
             <span className="med-topbar__name">SaludVista</span>
@@ -270,8 +281,20 @@ export default function App() {
       </header>
 
       <div className="med-layout">
+        {/* ── Mobile overlay ───────────────────────────────────────────── */}
+        {sidebarOpen && (
+          <div
+            className="sidebar-overlay"
+            aria-hidden="true"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* ── Left sidebar ─────────────────────────────────────────────── */}
-        <aside className="med-sidebar" aria-label="Navegación del informe">
+        <aside
+          className={`med-sidebar ${sidebarOpen ? 'med-sidebar--open' : ''}`}
+          aria-label="Navegación del informe"
+        >
           <div className="med-patient-card">
             <div className="med-patient-card__avatar" aria-hidden="true">MG</div>
             <div>
@@ -292,6 +315,7 @@ export default function App() {
                   setPanelOpen(false)
                   setSummaryText(''); setFaqText(''); setActionsText('')
                   setActiveTab('summary')
+                  setSidebarOpen(false)
                 }}
               >
                 {s.label}
