@@ -43,6 +43,13 @@ export default function App() {
     infoPopoverRef.current?.setAttribute('popover', 'auto')
   }, [])
 
+  // Light/dark theme toggle
+  const [lightMode, setLightMode] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', lightMode ? 'light' : 'dark')
+  }, [lightMode])
+
   // Presenter sandbox controls
   const [simulatorMode, setSimulatorMode] = useState(true)
   const [forceError,    setForceError]    = useState(false)
@@ -251,6 +258,14 @@ export default function App() {
             {modelStatus}
           </span>
           <span className="privacy-badge">🔒 Inferencia local · 0 red</span>
+          <button
+            className="theme-toggle"
+            onClick={() => setLightMode((v) => !v)}
+            aria-label={lightMode ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
+            title={lightMode ? 'Modo oscuro' : 'Modo claro'}
+          >
+            {lightMode ? '🌙 Oscuro' : '☀️ Claro'}
+          </button>
         </div>
       </header>
 

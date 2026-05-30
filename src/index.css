@@ -53,6 +53,138 @@
   --rule-strong: rgba(0, 242, 255, 0.28);
 }
 
+/* ── Light mode overrides ────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-deep:    #eef4fb;
+  --bg-surface: #e2edf8;
+  --bg-panel:   rgba(242, 248, 255, 0.98);
+  --bg-glass:   rgba(230, 242, 255, 0.92);
+
+  --cyan:       #0284c7;
+  --cyan-dim:   rgba(2, 132, 199, 0.55);
+  --cyan-glow:  rgba(2, 132, 199, 0.12);
+  --magenta:    #9333ea;
+  --mag-dim:    rgba(147, 51, 234, 0.45);
+  --mag-glow:   rgba(147, 51, 234, 0.10);
+
+  --teal:       #0d9488;
+  --teal-dim:   rgba(13, 148, 136, 0.35);
+  --gold:       #b45309;
+
+  --flag-high:    #dc2626;
+  --flag-high-bg: rgba(220, 38, 38, 0.08);
+  --flag-low:     #2563eb;
+  --flag-low-bg:  rgba(37, 99, 235, 0.08);
+  --flag-normal:  #16a34a;
+  --flag-normal-bg: rgba(22, 163, 74, 0.08);
+  --flag-warn:    #d97706;
+  --flag-warn-bg: rgba(217, 119, 6, 0.08);
+  --flag-info:    #4f46e5;
+  --flag-info-bg: rgba(79, 70, 229, 0.08);
+
+  --ink:        #0b1e33;
+  --ink-dim:    #3d5a78;
+  --ink-muted:  #6b8aaa;
+
+  --rule:       rgba(2, 132, 199, 0.14);
+  --rule-strong: rgba(2, 132, 199, 0.28);
+}
+
+/* Light mode: body backgrounds and overlays */
+[data-theme="light"] body {
+  background: var(--bg-deep);
+  color: var(--ink);
+}
+
+[data-theme="light"] body::before {
+  background-image:
+    linear-gradient(rgba(2,132,199,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2,132,199,0.04) 1px, transparent 1px),
+    linear-gradient(rgba(2,132,199,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2,132,199,0.015) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+}
+
+[data-theme="light"] body::after {
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 10%, rgba(2,132,199,0.06), transparent 60%),
+    radial-gradient(ellipse 55% 50% at 90% 85%, rgba(147,51,234,0.06), transparent 55%),
+    radial-gradient(ellipse 50% 60% at 50% 50%, transparent 40%, rgba(200,220,240,0.3) 100%);
+}
+
+/* Light mode: topbar */
+[data-theme="light"] .med-topbar {
+  background: rgba(230, 242, 255, 0.96);
+}
+
+[data-theme="light"] .med-topbar__name {
+  color: var(--ink);
+}
+
+/* Light mode: sidebar */
+[data-theme="light"] .med-sidebar {
+  background: rgba(218, 234, 250, 0.92);
+}
+
+/* Light mode: elements with hardcoded white text */
+[data-theme="light"] .med-patient-card__name,
+[data-theme="light"] .lab-term,
+[data-theme="light"] .med-report-title,
+[data-theme="light"] .med-nav-item--active {
+  color: var(--ink);
+}
+
+/* Light mode: nav hover / active */
+[data-theme="light"] .med-nav-item:hover {
+  background: rgba(2,132,199,0.07);
+  color: var(--ink);
+}
+
+[data-theme="light"] .med-nav-item--active {
+  background: linear-gradient(90deg, rgba(2,132,199,0.14), rgba(147,51,234,0.10));
+}
+
+/* Light mode: AI panel */
+[data-theme="light"] .med-ai-panel {
+  background: rgba(240, 248, 255, 0.99);
+}
+
+/* Light mode: lab row hover */
+[data-theme="light"] .lab-row__main:hover {
+  background: rgba(2,132,199,0.05);
+}
+
+[data-theme="light"] .lab-row--active {
+  background: linear-gradient(90deg, rgba(2,132,199,0.09), rgba(147,51,234,0.06)) !important;
+}
+
+[data-theme="light"] .lab-info-btn:hover {
+  background: rgba(2,132,199,0.07);
+  color: var(--cyan);
+}
+
+/* Light mode: theme toggle button */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--bg-glass);
+  color: var(--ink-dim);
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-toggle:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
 /* ── Base reset ──────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
