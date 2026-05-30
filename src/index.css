@@ -32,25 +32,25 @@
   --gold:       #ffd166;
 
   /* Flag colours */
-  --flag-high:    #ff4d6d;
-  --flag-high-bg: rgba(255, 77, 109, 0.12);
+  --flag-high:    #ff6080;
+  --flag-high-bg: rgba(255, 77, 109, 0.22);
   --flag-low:     #60a5fa;
-  --flag-low-bg:  rgba(96, 165, 250, 0.12);
-  --flag-normal:  #22c55e;
-  --flag-normal-bg: rgba(34, 197, 94, 0.1);
+  --flag-low-bg:  rgba(96, 165, 250, 0.22);
+  --flag-normal:  #2ecc71;
+  --flag-normal-bg: rgba(46, 204, 113, 0.20);
   --flag-warn:    #f59e0b;
-  --flag-warn-bg: rgba(245, 158, 11, 0.12);
-  --flag-info:    #818cf8;
-  --flag-info-bg: rgba(129, 140, 248, 0.12);
+  --flag-warn-bg: rgba(245, 158, 11, 0.22);
+  --flag-info:    #a5b4fc;
+  --flag-info-bg: rgba(129, 140, 248, 0.22);
 
   /* Text */
-  --ink:        #e6f4ff;
-  --ink-dim:    #7a9bb5;
-  --ink-muted:  #3d6178;
+  --ink:        #ffffff;
+  --ink-dim:    #aac8e8;
+  --ink-muted:  #5e90b8;
 
   /* Rules */
-  --rule:       rgba(0, 242, 255, 0.1);
-  --rule-strong: rgba(0, 242, 255, 0.28);
+  --rule:       rgba(0, 242, 255, 0.22);
+  --rule-strong: rgba(0, 242, 255, 0.48);
 }
 
 /* ── Light mode overrides ────────────────────────────────────────────────────── */
@@ -71,23 +71,23 @@
   --teal-dim:   rgba(13, 148, 136, 0.35);
   --gold:       #b45309;
 
-  --flag-high:    #dc2626;
-  --flag-high-bg: rgba(220, 38, 38, 0.08);
-  --flag-low:     #2563eb;
-  --flag-low-bg:  rgba(37, 99, 235, 0.08);
-  --flag-normal:  #16a34a;
-  --flag-normal-bg: rgba(22, 163, 74, 0.08);
-  --flag-warn:    #d97706;
-  --flag-warn-bg: rgba(217, 119, 6, 0.08);
-  --flag-info:    #4f46e5;
-  --flag-info-bg: rgba(79, 70, 229, 0.08);
+  --flag-high:    #b91c1c;
+  --flag-high-bg: rgba(185, 28, 28, 0.14);
+  --flag-low:     #1d4ed8;
+  --flag-low-bg:  rgba(29, 78, 216, 0.14);
+  --flag-normal:  #15803d;
+  --flag-normal-bg: rgba(21, 128, 61, 0.14);
+  --flag-warn:    #b45309;
+  --flag-warn-bg: rgba(180, 83, 9, 0.14);
+  --flag-info:    #4338ca;
+  --flag-info-bg: rgba(67, 56, 202, 0.14);
 
-  --ink:        #0b1e33;
-  --ink-dim:    #3d5a78;
-  --ink-muted:  #6b8aaa;
+  --ink:        #050e1c;
+  --ink-dim:    #1a3a5c;
+  --ink-muted:  #3a6080;
 
-  --rule:       rgba(2, 132, 199, 0.14);
-  --rule-strong: rgba(2, 132, 199, 0.28);
+  --rule:       rgba(2, 132, 199, 0.28);
+  --rule-strong: rgba(2, 132, 199, 0.55);
 }
 
 /* Light mode: body backgrounds and overlays */
@@ -141,7 +141,8 @@
 }
 
 [data-theme="light"] .med-nav-item--active {
-  background: linear-gradient(90deg, rgba(2,132,199,0.14), rgba(147,51,234,0.10));
+  background: linear-gradient(90deg, rgba(2,132,199,0.22), rgba(147,51,234,0.16));
+  border-color: rgba(2,132,199,0.5);
 }
 
 /* Light mode: AI panel */
@@ -155,7 +156,8 @@
 }
 
 [data-theme="light"] .lab-row--active {
-  background: linear-gradient(90deg, rgba(2,132,199,0.09), rgba(147,51,234,0.06)) !important;
+  background: linear-gradient(90deg, rgba(2,132,199,0.16), rgba(147,51,234,0.10)) !important;
+  box-shadow: inset 3px 0 0 var(--cyan);
 }
 
 [data-theme="light"] .lab-info-btn:hover {
@@ -226,9 +228,8 @@ body::after {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 60% 50% at 15% 10%, rgba(0,242,255,0.08), transparent 60%),
-    radial-gradient(ellipse 55% 50% at 90% 85%, rgba(189,0,255,0.1), transparent 55%),
-    radial-gradient(ellipse 50% 60% at 50% 50%, transparent 40%, rgba(0,0,0,0.6) 100%);
+    radial-gradient(ellipse 60% 50% at 15% 10%, rgba(0,242,255,0.10), transparent 60%),
+    radial-gradient(ellipse 55% 50% at 90% 85%, rgba(189,0,255,0.12), transparent 55%);
 }
 
 /* ── Shell layout ───────────────────────────────────────────────────────────── */
@@ -250,7 +251,7 @@ body::after {
   justify-content: space-between;
   padding: 0 28px;
   height: 64px;
-  background: rgba(2, 13, 26, 0.92);
+  background: rgba(2, 10, 22, 0.98);
   border-bottom: 1px solid var(--rule-strong);
   backdrop-filter: blur(12px);
   flex-shrink: 0;
@@ -343,8 +344,8 @@ body::after {
 
 /* ── Left sidebar ───────────────────────────────────────────────────────────── */
 .med-sidebar {
-  background: rgba(4, 15, 30, 0.9);
-  border-right: 1px solid var(--rule);
+  background: rgba(3, 12, 26, 0.97);
+  border-right: 1px solid var(--rule-strong);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -422,9 +423,10 @@ body::after {
 }
 
 .med-nav-item--active {
-  background: linear-gradient(90deg, rgba(0,242,255,0.14), rgba(189,0,255,0.1));
+  background: linear-gradient(90deg, rgba(0,242,255,0.22), rgba(189,0,255,0.16));
   border-color: var(--rule-strong);
   color: #fff;
+  font-weight: 600;
 }
 
 .med-sidebar__info {
